@@ -1,0 +1,128 @@
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  phone VARCHAR(20) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  date_of_birth DATE,
+  gender VARCHAR(10),
+  address TEXT,
+  role VARCHAR(20) DEFAULT 'user',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS specialties (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  symptoms TEXT,
+  building_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (building_id) REFERENCES buildings(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS buildings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  address TEXT,
+  description TEXT,
+  floors INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS rooms (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  room_number VARCHAR(50) NOT NULL,
+  building_id INT NOT NULL,
+  specialty_id INT,
+  floor INT,
+  capacity INT DEFAULT 1,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (building_id) REFERENCES buildings(id) ON DELETE CASCADE,
+  FOREIGN KEY (specialty_id) REFERENCES specialties(id) ON DELETE SET NULL,
+  UNIQUE KEY unique_room (room_number, building_id)
+);
+
+CREATE TABLE IF NOT EXISTS doctors (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  full_name VARCHAR(255) NOT NULL,
+  title VARCHAR(100),
+  specialty_id INT,
+  room_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (specialty_id) REFERENCES specialties(id) ON DELETE SET NULL,
+  FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS appointments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  doctor_id INT NOT NULL,
+  specialty_id INT NOT NULL,
+  date DATE NOT NULL,
+  time_slot VARCHAR(10) NOT NULL,
+  room VARCHAR(50),
+  building VARCHAR(100),
+  max_patients INT DEFAULT 20,
+  current_patients INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+  FOREIGN KEY (specialty_id) REFERENCES specialties(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_slot (doctor_id, date, time_slot)
+);
+
+CREATE TABLE IF NOT EXISTS family_members (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  date_of_birth DATE,
+  gender VARCHAR(10),
+  relationship VARCHAR(50),
+  phone VARCHAR(20),
+  address TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS bookings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  patient_id INT NOT NULL,
+  appointment_id INT NOT NULL,
+  doctor_id INT NOT NULL,
+  specialty_id INT NOT NULL,
+  symptoms TEXT,
+  booking_code VARCHAR(50) UNIQUE NOT NULL,
+  queue_number VARCHAR(20),
+  status VARCHAR(20) DEFAULT 'confirmed',
+  fee DECIMAL(10, 2) DEFAULT 400000,
+  examination_date DATE NOT NULL,
+  examination_time VARCHAR(10) NOT NULL,
+  room VARCHAR(50),
+  building VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+  FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+  FOREIGN KEY (specialty_id) REFERENCES specialties(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  token VARCHAR(500) NOT NULL,
+  user_id INT NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_token (token),
+  INDEX idx_user_id (user_id)
+);
+
