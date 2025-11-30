@@ -27,6 +27,7 @@ const initDatabase = async () => {
     await addRoleColumnIfNotExists();
     await addBuildingIdToSpecialtiesIfNotExists();
     await addSpecialtyIdToRoomsIfNotExists();
+    await removeFeeColumnFromBookingsIfExists();
     
     console.log('✅ Database schema đã được khởi tạo');
     
@@ -111,6 +112,30 @@ const addSpecialtyIdToRoomsIfNotExists = async () => {
     }
   } catch (error) {
     console.error('❌ Lỗi kiểm tra/thêm cột specialty_id vào rooms:', error.message);
+  }
+};
+
+const removeFeeColumnFromBookingsIfExists = async () => {
+  try {
+    const columns = await db.query(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = DATABASE() 
+      AND TABLE_NAME = 'bookings' 
+      AND COLUMN_NAME = 'fee'
+    `);
+    
+    if (columns.length > 0) {
+      await db.query(`
+        ALTER TABLE bookings 
+        DROP COLUMN fee
+      `);
+      console.log('✅ Đã xóa cột fee khỏi bảng bookings');
+    } else {
+      console.log('✅ Cột fee đã không tồn tại trong bảng bookings');
+    }
+  } catch (error) {
+    console.error('❌ Lỗi xóa cột fee khỏi bookings:', error.message);
   }
 };
 

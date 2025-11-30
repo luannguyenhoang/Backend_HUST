@@ -42,7 +42,7 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { appointmentId, doctorId, specialtyId, date, timeSlot, patientId, symptoms, fee } = req.body;
+    const { appointmentId, doctorId, specialtyId, date, timeSlot, patientId, symptoms } = req.body;
     
     if (!appointmentId && (!doctorId || !specialtyId || !date || !timeSlot)) {
       return res.status(400).json({
@@ -72,8 +72,7 @@ const create = async (req, res) => {
       specialtyId,
       date,
       timeSlot,
-      symptoms,
-      fee
+      symptoms
     });
 
     res.status(201).json({

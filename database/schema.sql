@@ -102,7 +102,6 @@ CREATE TABLE IF NOT EXISTS bookings (
   booking_code VARCHAR(50) UNIQUE NOT NULL,
   queue_number VARCHAR(20),
   status VARCHAR(20) DEFAULT 'confirmed',
-  fee DECIMAL(10, 2) DEFAULT 400000,
   examination_date DATE NOT NULL,
   examination_time VARCHAR(10) NOT NULL,
   room VARCHAR(50),

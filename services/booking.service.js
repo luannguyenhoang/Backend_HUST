@@ -38,7 +38,6 @@ const getAll = async (userId) => {
     bookingCode: row.booking_code,
     queueNumber: row.queue_number,
     status: row.status,
-    fee: parseFloat(row.fee),
     examinationDate: row.examination_date,
     examinationTime: row.examination_time,
     room: row.room,
@@ -81,7 +80,6 @@ const getAllAdmin = async () => {
     bookingCode: row.booking_code,
     queueNumber: row.queue_number,
     status: row.status,
-    fee: parseFloat(row.fee),
     examinationDate: row.examination_date,
     examinationTime: row.examination_time,
     room: row.room,
@@ -118,7 +116,6 @@ const getById = async (id, userId) => {
     bookingCode: row.booking_code,
     queueNumber: row.queue_number,
     status: row.status,
-    fee: parseFloat(row.fee),
     examinationDate: row.examination_date,
     examinationTime: row.examination_time,
     room: row.room,
@@ -160,8 +157,8 @@ const create = async (data) => {
   const bookingCode = generateBookingCode();
 
   const result = await db.query(
-    `INSERT INTO bookings (user_id, patient_id, appointment_id, doctor_id, specialty_id, symptoms, booking_code, queue_number, status, fee, examination_date, examination_time, room, building) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?)`,
+    `INSERT INTO bookings (user_id, patient_id, appointment_id, doctor_id, specialty_id, symptoms, booking_code, queue_number, status, examination_date, examination_time, room, building) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?)`,
     [
       data.userId,
       data.patientId,
@@ -171,7 +168,6 @@ const create = async (data) => {
       data.symptoms,
       bookingCode,
       queueNumber,
-      data.fee || 400000,
       appointment.date,
       appointment.timeSlot,
       appointment.room,

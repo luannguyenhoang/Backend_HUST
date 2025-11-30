@@ -61,8 +61,6 @@ router.get('/:id', authenticate, bookingController.getById);
  *                 type: integer
  *               symptoms:
  *                 type: string
- *               fee:
- *                 type: number
  *     responses:
  *       201:
  *         description: Đặt lịch thành công
