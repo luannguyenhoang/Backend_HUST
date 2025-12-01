@@ -1,13 +1,20 @@
 const db = require('../config/database');
 
-const getAll = async () => {
-  const results = await db.query(`
+const getAll = async (page = null, pageSize = null) => {
+  let query = `
     SELECT d.*, r.room_number as room, r.building 
     FROM doctors d 
     LEFT JOIN rooms r ON d.room_id = r.id 
     ORDER BY d.id
-  `);
-  return results.map(row => ({
+  `;
+  
+  if (page !== null && pageSize !== null) {
+    const offset = (page - 1) * pageSize;
+    query += ` LIMIT ${pageSize} OFFSET ${offset}`;
+  }
+  
+  const results = await db.query(query);
+  const data = results.map(row => ({
     id: row.id,
     fullName: row.full_name,
     title: row.title,
@@ -18,6 +25,23 @@ const getAll = async () => {
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }));
+  
+  if (page !== null && pageSize !== null) {
+    const countResult = await db.query('SELECT COUNT(*) as total FROM doctors');
+    const total = countResult[0].total;
+    
+    return {
+      data,
+      pagination: {
+        page: parseInt(page),
+        pageSize: parseInt(pageSize),
+        total,
+        totalPages: Math.ceil(total / pageSize)
+      }
+    };
+  }
+  
+  return data;
 };
 
 const getById = async (id) => {
@@ -43,15 +67,22 @@ const getById = async (id) => {
   };
 };
 
-const getBySpecialty = async (specialtyId) => {
-  const results = await db.query(`
+const getBySpecialty = async (specialtyId, page = null, pageSize = null) => {
+  let query = `
     SELECT d.*, r.room_number as room, r.building 
     FROM doctors d 
     LEFT JOIN rooms r ON d.room_id = r.id 
     WHERE d.specialty_id = ? 
     ORDER BY d.id
-  `, [specialtyId]);
-  return results.map(row => ({
+  `;
+  
+  if (page !== null && pageSize !== null) {
+    const offset = (page - 1) * pageSize;
+    query += ` LIMIT ${pageSize} OFFSET ${offset}`;
+  }
+  
+  const results = await db.query(query, [specialtyId]);
+  const data = results.map(row => ({
     id: row.id,
     fullName: row.full_name,
     title: row.title,
@@ -62,6 +93,26 @@ const getBySpecialty = async (specialtyId) => {
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }));
+  
+  if (page !== null && pageSize !== null) {
+    const countResult = await db.query(
+      'SELECT COUNT(*) as total FROM doctors WHERE specialty_id = ?',
+      [specialtyId]
+    );
+    const total = countResult[0].total;
+    
+    return {
+      data,
+      pagination: {
+        page: parseInt(page),
+        pageSize: parseInt(pageSize),
+        total,
+        totalPages: Math.ceil(total / pageSize)
+      }
+    };
+  }
+  
+  return data;
 };
 
 const create = async (data) => {
@@ -184,18 +235,26 @@ const update = async (id, data) => {
   return await getById(id);
 };
 
-const search = async (keyword) => {
-  if (!keyword) return await getAll();
+const search = async (keyword, page = null, pageSize = null) => {
+  if (!keyword) return await getAll(page, pageSize);
   
-  const results = await db.query(`
+  let query = `
     SELECT d.*, r.room_number as room, r.building 
     FROM doctors d 
     LEFT JOIN rooms r ON d.room_id = r.id 
     WHERE d.full_name LIKE ? OR d.title LIKE ? 
     ORDER BY d.id
-  `, [`%${keyword}%`, `%${keyword}%`]);
+  `;
   
-  return results.map(row => ({
+  const params = [`%${keyword}%`, `%${keyword}%`];
+  
+  if (page !== null && pageSize !== null) {
+    const offset = (page - 1) * pageSize;
+    query += ` LIMIT ${pageSize} OFFSET ${offset}`;
+  }
+  
+  const results = await db.query(query, params);
+  const data = results.map(row => ({
     id: row.id,
     fullName: row.full_name,
     title: row.title,
@@ -206,6 +265,26 @@ const search = async (keyword) => {
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }));
+  
+  if (page !== null && pageSize !== null) {
+    const countResult = await db.query(
+      'SELECT COUNT(*) as total FROM doctors WHERE full_name LIKE ? OR title LIKE ?',
+      [`%${keyword}%`, `%${keyword}%`]
+    );
+    const total = countResult[0].total;
+    
+    return {
+      data,
+      pagination: {
+        page: parseInt(page),
+        pageSize: parseInt(pageSize),
+        total,
+        totalPages: Math.ceil(total / pageSize)
+      }
+    };
+  }
+  
+  return data;
 };
 
 const remove = async (id) => {

@@ -2,15 +2,26 @@ const specialtyService = require('../services/specialty.service');
 
 const getAll = async (req, res) => {
   try {
-    const { search } = req.query;
-    const data = search 
-      ? await specialtyService.search(search)
-      : await specialtyService.getAll();
+    const { search, page, pageSize } = req.query;
+    const pageNum = page ? parseInt(page) : null;
+    const pageSizeNum = pageSize ? parseInt(pageSize) : null;
     
-    res.json({
-      success: true,
-      data
-    });
+    const result = search 
+      ? await specialtyService.search(search, pageNum, pageSizeNum)
+      : await specialtyService.getAll(pageNum, pageSizeNum);
+    
+    if (pageNum !== null && pageSizeNum !== null) {
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination
+      });
+    } else {
+      res.json({
+        success: true,
+        data: result
+      });
+    }
   } catch (error) {
     res.status(500).json({
       success: false,

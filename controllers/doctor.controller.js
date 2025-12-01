@@ -2,21 +2,32 @@ const doctorService = require('../services/doctor.service');
 
 const getAll = async (req, res) => {
   try {
-    const { specialtyId, search } = req.query;
-    let data;
+    const { specialtyId, search, page, pageSize } = req.query;
+    const pageNum = page ? parseInt(page) : null;
+    const pageSizeNum = pageSize ? parseInt(pageSize) : null;
+    
+    let result;
     
     if (specialtyId) {
-      data = await doctorService.getBySpecialty(specialtyId);
+      result = await doctorService.getBySpecialty(specialtyId, pageNum, pageSizeNum);
     } else if (search) {
-      data = await doctorService.search(search);
+      result = await doctorService.search(search, pageNum, pageSizeNum);
     } else {
-      data = await doctorService.getAll();
+      result = await doctorService.getAll(pageNum, pageSizeNum);
     }
     
-    res.json({
-      success: true,
-      data
-    });
+    if (pageNum !== null && pageSizeNum !== null) {
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination
+      });
+    } else {
+      res.json({
+        success: true,
+        data: result
+      });
+    }
   } catch (error) {
     res.status(500).json({
       success: false,
